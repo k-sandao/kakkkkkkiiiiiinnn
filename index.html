@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3572442351605406"
-     crossorigin="anonymous"></script>
 <meta charset="UTF-8">
 <title>課金計算サイト</title>
 <style>
@@ -24,29 +22,14 @@
   button:hover { background-color:#45a049; }
   .result { margin-top:20px; border-top:2px solid #333; padding-top:10px; background-color:#fff; border-radius:8px; padding:15px; }
   #history { margin-top:10px; }
-  .ad-container { margin: 15px 0; text-align:center; }
+  .footer-links { margin-top:30px; text-align:center; }
+  .footer-links a { margin:0 10px; color:#1a73e8; text-decoration:none; }
+  .footer-links a:hover { text-decoration:underline; }
 </style>
-
-<!-- Google AdSenseスクリプト -->
-<script data-ad-client="ca-pub-xxxxxxxxxxxxxxxx" async
-  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-
 </head>
 <body>
 
 <h1>課金計算サイト</h1>
-
-<!-- ページ上部広告 -->
-<div class="ad-container">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"
-       data-ad-slot="1111111111"
-       data-ad-format="auto"></ins>
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-</div>
 
 <h2>パック選択</h2>
 <div class="pack-container" id="packs"></div>
@@ -59,20 +42,14 @@
 
 <div class="result" id="result"></div>
 
-<!-- 計算結果下広告 -->
-<div class="ad-container">
-  <ins class="adsbygoogle"
-       style="display:block"
-       data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"
-       data-ad-slot="2222222222"
-       data-ad-format="auto"></ins>
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>
-</div>
-
 <h2>購入履歴</h2>
 <div id="history"></div>
+
+<!-- フッターリンク -->
+<div class="footer-links">
+  <a href="https://youtube.com/@air_player2424?si=2FZbvaDer_dxbt6Z" target="_blank">YouTube</a>
+  <a href="https://x.com/re62_kn?s=11&t=gadj8VbUyh21lOO3e5edZA" target="_blank">X</a>
+</div>
 
 <script>
 const defaultPacks = [
@@ -147,19 +124,16 @@ function calculate(){
     }
   });
 
-  // 有償石パワー計算
   paidPower += Math.floor(totalPaid/50)*40;
   paidRemainder = totalPaid%50;
   paidPower += Math.floor(paidRemainder/5)*4;
   paidRemainder = paidRemainder%5;
 
-  // 無償石パワー計算
   freePower += Math.floor(totalFree/50)*10;
   freeRemainder = totalFree%50;
   freePower += Math.floor(freeRemainder/5)*1;
   freeRemainder = freeRemainder%5;
 
-  // クーポンパワー
   couponPower = totalCoupon*1;
 
   const totalPower = paidPower + freePower + couponPower;
@@ -174,7 +148,6 @@ function calculate(){
     <button onclick="calculate()">計算し直す</button>
   `;
 
-  // 履歴追加
   const selectedPacks = packs.map((p,i)=>document.getElementById(`pack${i}`).checked?p.name:null).filter(Boolean);
   if(selectedPacks.length>0){
     history.push({packs:selectedPacks,price:totalPrice});
