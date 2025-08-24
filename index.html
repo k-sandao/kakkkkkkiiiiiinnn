@@ -1,147 +1,176 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>パック購入シミュレーター</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin: 20px;
-      background: #f8f8f8;
-    }
-    h1 {
-      text-align: center;
-    }
-    #packs {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
-    }
-    .pack-card {
-      background: #fff;
-      padding: 12px;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .pack-card input[type="number"] {
-      width: 60px;
-      margin-left: 5px;
-    }
-    .pack-card input[type="range"] {
-      width: 100%; /* 横幅いっぱい */
-      margin: 8px 0;
-    }
-    .total {
-      margin-top: 25px;
-      padding: 15px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      font-size: 1.2em;
-    }
-  </style>
-</head>
-<body>
-  <h1>パック購入シミュレーター</h1>
-  <div id="packs"></div>
+// src/App.js
+import React, { useState } from "react";
 
-  <div class="total">
-    <p>合計金額: <span id="totalPrice">0</span> 円</p>
-    <p>有償石: <span id="totalPaid">0</span></p>
-    <p>無償石: <span id="totalFree">0</span></p>
-    <p>クーポン: <span id="totalCoupon">0</span></p>
-  </div>
+// パック一覧
+const packs = [
+  { name: "魔導石195個パック", price: 7800, paid: 65, free: 130, multiple: false },
+  { name: "魔導石120個パック", price: 4800, paid: 40, free: 80, multiple: false },
+  { name: "魔導石75個パック", price: 3000, paid: 25, free: 50, multiple: false },
+  { name: "魔導石33個パック", price: 1200, paid: 10, free: 23, multiple: false },
+  { name: "魔導石25個パック", price: 480, paid: 4, free: 21, multiple: false },
+  { name: "追憶の天騎士デュアルシフトガチャクーポンSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false },
+  { name: "月間公式ストアパック55", price: 1200, paid: 10, free: 45, multiple: false },
+  { name: "月間公式ストアパック300", price: 18000, paid: 150, free: 150, multiple: false },
+  { name: "魔導石26個（公式ストア）", price: 3000, paid: 25, free: 1, multiple: true },
+  { name: "魔導石43個（公式ストア）", price: 4800, paid: 40, free: 3, multiple: true },
+  { name: "魔導石71個（公式ストア）", price: 7800, paid: 65, free: 6, multiple: true },
+  { name: "ギルドイベント応援フルパワーガチャクーポンSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false },
+  { name: "ぷよクエサマー2025ブーストガチャクーポSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false },
+  { name: "魔導石65個", price: 7800, paid: 65, free: 0, multiple: true },
+  { name: "魔導石40個", price: 4800, paid: 40, free: 0, multiple: true },
+  { name: "魔導石25個", price: 3000, paid: 25, free: 0, multiple: true },
+  { name: "魔導石10個", price: 1200, paid: 10, free: 0, multiple: true },
+  { name: "魔導石4個", price: 480, paid: 4, free: 0, multiple: true },
+  { name: "スタート応援パック", price: 1200, paid: 10, free: 0, multiple: false },
+  { name: "育成応援パック", price: 480, paid: 4, free: 0, multiple: false },
+  { name: "魔導石月末パック", price: 3000, paid: 25, free: 25, coupon: 0, limit: 1 }, // 1回のみ
+  { name: "魔導石パックPremium(140)", price: 9800, paid: 50, free: 90, coupon: 0, limit: 3 }, // 最大3回
+];
 
-  <script>
-    const defaultPacks = [
-      { name: "魔導石195個パック", price: 7800, paid: 65, free: 130, multiple: false },
-      { name: "魔導石120個パック", price: 4800, paid: 40, free: 80, multiple: false },
-      { name: "魔導石75個パック", price: 3000, paid: 25, free: 50, multiple: false },
-      { name: "魔導石33個パック", price: 1200, paid: 10, free: 23, multiple: false },
-      { name: "魔導石25個パック", price: 480, paid: 4, free: 21, multiple: false },
-      { name: "追憶の天騎士デュアルシフトガチャクーポンSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false },
-      { name: "月間公式ストアパック55", price: 1200, paid: 10, free: 45, multiple: false },
-      { name: "月間公式ストアパック300", price: 18000, paid: 150, free: 150, multiple: false },
-      { name: "魔導石26個（公式ストア）", price: 3000, paid: 25, free: 1, multiple: true },
-      { name: "魔導石43個（公式ストア）", price: 4800, paid: 40, free: 3, multiple: true },
-      { name: "魔導石71個（公式ストア）", price: 7800, paid: 65, free: 6, multiple: true },
-      { name: "ギルドイベント応援フルパワーガチャクーポンSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false },
-      { name: "ぷよクエサマー2025ブーストガチャクーポSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false },
-      { name: "魔導石65個", price: 7800, paid: 65, free: 0, multiple: true },
-      { name: "魔導石40個", price: 4800, paid: 40, free: 0, multiple: true },
-      { name: "魔導石25個", price: 3000, paid: 25, free: 0, multiple: true },
-      { name: "魔導石10個", price: 1200, paid: 10, free: 0, multiple: true },
-      { name: "魔導石4個", price: 480, paid: 4, free: 0, multiple: true },
-      { name: "スタート応援パック", price: 1200, paid: 10, free: 0, multiple: false },
-      { name: "育成応援パック", price: 480, paid: 4, free: 0, multiple: false },
+function App() {
+  const [selected, setSelected] = useState({});
+  const [owned, setOwned] = useState({ paid: 0, free: 0, coupon: 0 });
 
-      // ★追加パック
-      { name: "魔導石月末パック", price: 3000, paid: 25, free: 25, coupon: 0, multiple: false },
-      { name: "魔導石パックpremium(140)", price: 9800, paid: 50, free: 90, coupon: 0, multiple: true, limit: 3 }
-    ];
+  const togglePack = (name) => {
+    setSelected((prev) => ({
+      ...prev,
+      [name]: prev[name] ? 0 : 1,
+    }));
+  };
 
-    let packs = [...defaultPacks];
+  const updateSlider = (name, value) => {
+    setSelected((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
-    function renderPacks() {
-      const container = document.getElementById('packs');
-      container.innerHTML = '';
-      packs.forEach((pack,index) => {
-        let html = `<div class="pack-card">
-          <input type="checkbox" id="pack${index}" onchange="updateTotal()"> 
-          <label for="pack${index}"><strong>${pack.name}</strong></label>
-          <p>￥${pack.price} | 有償${pack.paid} 無償${pack.free} クーポン${pack.coupon||0}</p>`;
+  // 合計計算
+  const total = packs.reduce(
+    (acc, p) => {
+      const count = selected[p.name] || 0;
+      acc.price += p.price * count;
+      acc.paid += p.paid * count;
+      acc.free += p.free * count;
+      if (p.coupon) acc.coupon += p.coupon * count;
+      return acc;
+    },
+    { price: 0, paid: owned.paid, free: owned.free, coupon: owned.coupon }
+  );
 
-        // 複数回購入可
-        if(pack.multiple) {
-          if(pack.limit){ 
-            // 上限あり → スライダー式
-            html += `
-              <div>
-                <label for="qty${index}">回数:</label>
-                <input type="range" id="qty${index}" value="0" min="0" max="${pack.limit}" 
-                  oninput="document.getElementById('val${index}').textContent=this.value; updateTotal()" />
-                <span id="val${index}">0</span> / ${pack.limit}
-              </div>`;
-          } else {
-            // 上限なし → 数値入力
-            html += `数量: <input type="number" id="qty${index}" value="1" min="1" onchange="updateTotal()">`;
+  return (
+    <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
+      <h1>魔導石購入シミュレーター</h1>
+
+      {/* 所持石入力欄 */}
+      <div style={{ marginBottom: "20px" }}>
+        <h2>現在の所持数</h2>
+        <label>
+          有償:
+          <input
+            type="number"
+            value={owned.paid}
+            onChange={(e) => setOwned({ ...owned, paid: Number(e.target.value) })}
+            style={{ width: "80px", marginRight: "10px" }}
+          />
+        </label>
+        <label>
+          無償:
+          <input
+            type="number"
+            value={owned.free}
+            onChange={(e) => setOwned({ ...owned, free: Number(e.target.value) })}
+            style={{ width: "80px", marginRight: "10px" }}
+          />
+        </label>
+        <label>
+          クーポン:
+          <input
+            type="number"
+            value={owned.coupon}
+            onChange={(e) => setOwned({ ...owned, coupon: Number(e.target.value) })}
+            style={{ width: "80px" }}
+          />
+        </label>
+      </div>
+
+      {/* パック選択 */}
+      <div>
+        {packs.map((p) => {
+          const count = selected[p.name] || 0;
+
+          // 1回しか買えない or multiple:false の場合はチェックボックス
+          if (!p.limit && !p.multiple) {
+            return (
+              <div key={p.name}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={!!count}
+                    onChange={() => togglePack(p.name)}
+                  />
+                  {p.name} ({p.price}円, 有償{p.paid}, 無償{p.free}
+                  {p.coupon ? `, クーポン${p.coupon}` : ""})
+                </label>
+              </div>
+            );
           }
-        }
 
-        html += '</div>';
-        container.innerHTML += html;
-      });
-    }
-
-    function updateTotal() {
-      let totalPrice = 0, totalPaid = 0, totalFree = 0, totalCoupon = 0;
-      packs.forEach((pack,index) => {
-        const checked = document.getElementById(`pack${index}`).checked;
-        if(!checked) return;
-
-        let qty = 1;
-        if(pack.multiple) {
-          if(pack.limit){
-            qty = parseInt(document.getElementById(`qty${index}`).value) || 0;
-          } else {
-            qty = parseInt(document.getElementById(`qty${index}`).value) || 1;
+          // 制限ありスライダー
+          if (p.limit) {
+            return (
+              <div key={p.name} style={{ marginBottom: "20px" }}>
+                <label>
+                  {p.name} ({p.price}円, 有償{p.paid}, 無償{p.free}
+                  {p.coupon ? `, クーポン${p.coupon}` : ""})
+                </label>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <input
+                    type="range"
+                    min="0"
+                    max={p.limit}
+                    value={count}
+                    onChange={(e) => updateSlider(p.name, Number(e.target.value))}
+                    style={{ flex: 1, marginRight: "10px" }}
+                  />
+                  {/* スライダー上に数字 */}
+                  <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                    {count}
+                  </span>
+                  {/* 右端に最大値 */}
+                  {count !== p.limit && (
+                    <span style={{ marginLeft: "10px" }}>{p.limit}</span>
+                  )}
+                </div>
+              </div>
+            );
           }
-        }
 
-        totalPrice += pack.price * qty;
-        totalPaid += pack.paid * qty;
-        totalFree += pack.free * qty;
-        totalCoupon += (pack.coupon||0) * qty;
-      });
+          // 複数回無制限購入できるもの
+          return (
+            <div key={p.name}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={!!count}
+                  onChange={() => togglePack(p.name)}
+                />
+                {p.name} ({p.price}円, 有償{p.paid}, 無償{p.free}
+                {p.coupon ? `, クーポン${p.coupon}` : ""})
+              </label>
+            </div>
+          );
+        })}
+      </div>
 
-      document.getElementById('totalPrice').textContent = totalPrice.toLocaleString();
-      document.getElementById('totalPaid').textContent = totalPaid;
-      document.getElementById('totalFree').textContent = totalFree;
-      document.getElementById('totalCoupon').textContent = totalCoupon;
-    }
+      {/* 合計表示 */}
+      <h2>合計</h2>
+      <p>金額: {total.price}円</p>
+      <p>有償: {total.paid}個</p>
+      <p>無償: {total.free}個</p>
+      <p>クーポン: {total.coupon}枚</p>
+    </div>
+  );
+}
 
-    renderPacks();
-  </script>
-</body>
-</html>
+export default App;
