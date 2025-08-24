@@ -43,15 +43,31 @@
   <div id="result"></div>
 
   <script>
+    // 既存＋新しいパック
     const packs = [
+      { 
+        name: "初心者応援パック", 
+        price: 1000, 
+        paid: 10, 
+        free: 0, 
+        coupon: 1, 
+        multiple: false 
+      },
+      { 
+        name: "上級者限定パック", 
+        price: 5000, 
+        paid: 30, 
+        free: 20, 
+        coupon: 2, 
+        multiple: false 
+      },
       { 
         name: "魔導石月末パック", 
         price: 3000, 
         paid: 25, 
         free: 25, 
         coupon: 0, 
-        multiple: true, 
-        limit: 1 
+        multiple: false // 1回のみ → チェックボックス
       },
       { 
         name: "魔導石パックpremium(140)", 
@@ -60,7 +76,7 @@
         free: 90, 
         coupon: 0, 
         multiple: true, 
-        limit: 3 
+        limit: 3 // 複数回可能 → スライダー
       }
     ];
 
