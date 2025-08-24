@@ -8,7 +8,6 @@
   h1,h2 { color: #333; }
   .pack-container { display: flex; flex-wrap: wrap; gap: 15px; }
   .pack-card {
-    background-color: #fff;
     border: 1px solid #ccc;
     border-radius: 10px;
     padding: 15px;
@@ -32,6 +31,12 @@
   .footer-links { margin-top:30px; text-align:center; }
   .footer-links a { margin:0 10px; color:#1a73e8; text-decoration:none; font-weight:bold; }
   .footer-links a:hover { text-decoration:underline; }
+  /* 背景色グループ */
+  .blue { background-color: #d0e7ff; }
+  .orange { background-color: #ffe0c0; }
+  .green { background-color: #d0ffd8; }
+  .purple { background-color: #e6d0ff; }
+  .yellow { background-color: #fff8b0; }
 </style>
 </head>
 <body>
@@ -66,29 +71,33 @@
 
 <script>
 const defaultPacks = [
-  { name: "魔導石195個パック", price: 7800, paid: 65, free: 130, multiple: false },
-  { name: "魔導石120個パック", price: 4800, paid: 40, free: 80, multiple: false },
-  { name: "魔導石75個パック", price: 3000, paid: 25, free: 50, multiple: false },
-  { name: "魔導石33個パック", price: 1200, paid: 10, free: 23, multiple: false },
-  { name: "魔導石25個パック", price: 480, paid: 4, free: 21, multiple: false },
-  { name: "追憶の天騎士デュアルシフトガチャクーポンSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false },
-  { name: "月間公式ストアパック55", price: 1200, paid: 10, free: 45, multiple: false },
-  { name: "月間公式ストアパック300", price: 18000, paid: 150, free: 150, multiple: false },
-  { name: "魔導石26個（公式ストア）", price: 3000, paid: 25, free: 1, multiple: true },
-  { name: "魔導石43個（公式ストア）", price: 4800, paid: 40, free: 3, multiple: true },
-  { name: "魔導石71個（公式ストア）", price: 7800, paid: 65, free: 6, multiple: true },
-  { name: "ギルドイベント応援フルパワーガチャクーポンSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false },
-  { name: "ぷよクエサマー2025ブーストガチャクーポSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false },
-  { name: "魔導石65個", price: 7800, paid: 65, free: 0, multiple: true },
-  { name: "魔導石40個", price: 4800, paid: 40, free: 0, multiple: true },
-  { name: "魔導石25個", price: 3000, paid: 25, free: 0, multiple: true },
-  { name: "魔導石10個", price: 1200, paid: 10, free: 0, multiple: true },
-  { name: "魔導石4個", price: 480, paid: 4, free: 0, multiple: true },
-  { name: "スタート応援パック", price: 1200, paid: 10, free: 0, multiple: false },
-  { name: "育成応援パック", price: 480, paid: 4, free: 0, multiple: false },
-  // 新しいパックを追加
-  { name: "魔導石月末パック", price: 1200, paid: 25, free: 25, multiple: false },
-  { name: "魔導石パックpremium(140)", price: 18000, paid: 50, free: 90, multiple: true, max:3 }
+  // 薄い青5個
+  { name: "魔導石195個パック", price: 7800, paid: 65, free: 130, multiple: false, color:'blue' },
+  { name: "魔導石120個パック", price: 4800, paid: 40, free: 80, multiple: false, color:'blue' },
+  { name: "魔導石75個パック", price: 3000, paid: 25, free: 50, multiple: false, color:'blue' },
+  { name: "魔導石33個パック", price: 1200, paid: 10, free: 23, multiple: false, color:'blue' },
+  { name: "魔導石25個パック", price: 480, paid: 4, free: 21, multiple: false, color:'blue' },
+  // 薄いオレンジ3個
+  { name: "追憶の天騎士デュアルシフトガチャクーポンSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false, color:'orange' },
+  { name: "ギルドイベント応援フルパワーガチャクーポンSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false, color:'orange' },
+  { name: "ぷよクエサマー2025ブーストガチャクーポSPパック", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false, color:'orange' },
+  // 薄い緑5個
+  { name: "月間公式ストアパック55", price: 1200, paid: 10, free: 45, multiple: false, color:'green' },
+  { name: "月間公式ストアパック300", price: 18000, paid: 150, free: 150, multiple: false, color:'green' },
+  { name: "魔導石26個（公式ストア）", price: 3000, paid: 25, free: 1, multiple: true, color:'green' },
+  { name: "魔導石43個（公式ストア）", price: 4800, paid: 40, free: 3, multiple: true, color:'green' },
+  { name: "魔導石71個（公式ストア）", price: 7800, paid: 65, free: 6, multiple: true, color:'green' },
+  // 薄い紫7個
+  { name: "魔導石65個", price: 7800, paid: 65, free: 0, multiple: true, color:'purple' },
+  { name: "魔導石40個", price: 4800, paid: 40, free: 0, multiple: true, color:'purple' },
+  { name: "魔導石25個", price: 3000, paid: 25, free: 0, multiple: true, color:'purple' },
+  { name: "魔導石10個", price: 1200, paid: 10, free: 0, multiple: true, color:'purple' },
+  { name: "魔導石4個", price: 480, paid: 4, free: 0, multiple: true, color:'purple' },
+  { name: "スタート応援パック", price: 1200, paid: 10, free: 0, multiple: false, color:'purple' },
+  { name: "育成応援パック", price: 480, paid: 4, free: 0, multiple: false, color:'purple' },
+  // 薄い黄2個
+  { name: "魔導石月末パック", price: 1200, paid: 25, free: 25, multiple: false, color:'yellow' },
+  { name: "魔導石パックpremium(140)", price: 18000, paid: 50, free: 90, multiple: true, max:3, color:'yellow' }
 ];
 
 let packs = [...defaultPacks];
@@ -98,14 +107,13 @@ function renderPacks() {
   const container = document.getElementById('packs');
   container.innerHTML = '';
   packs.forEach((pack,index)=>{
-    let html = `<div class="pack-card">
+    let html = `<div class="pack-card ${pack.color}">
       <input type="checkbox" id="pack${index}"> <label for="pack${index}">${pack.name}</label>
       <p>￥${pack.price} | 有償${pack.paid} 無償${pack.free} クーポン${pack.coupon||0}</p>`;
     if(pack.multiple && pack.max && pack.max>1){
       html += `<div class="slider-container">
         <input type="range" id="qty${index}" min="0" max="${pack.max}" value="0" oninput="document.getElementById('val${index}').textContent=this.value">
-        <span class="slider-value" id="val${index}">0</span>
-        <span style="margin-left:5px;">/${pack.max}</span>
+        <span class="slider-value" id="val${index}">0</span>/<span>${pack.max}</span>
       </div>`;
     } else if(pack.multiple){
       html += `数量: <input type="number" id="qty${index}" value="1" min="1">`;
@@ -119,20 +127,33 @@ function renderPacks() {
 }
 
 function selectAll(){
-  packs.forEach((_,i)=>{document.getElementById(`pack${i}`).checked=true;});
+  packs.forEach((_,i)=>{
+    const checkbox=document.getElementById(`pack${i}`);
+    if(checkbox) checkbox.checked=true;
+  });
 }
 
 function calculate(){
-  let totalPrice=0, totalPaid=parseInt(document.getElementById('ownPaid').value)||0, totalFree=parseInt(document.getElementById('ownFree').value)||0, totalCoupon=parseInt(document.getElementById('ownCoupon').value)||0;
+  let totalPrice=0, totalPaid=0, totalFree=0, totalCoupon=0;
   let paidPower=0, freePower=0, couponPower=0;
   let paidRemainder=0, freeRemainder=0;
 
+  const ownPaid = parseInt(document.getElementById('ownPaid').value)||0;
+  const ownFree = parseInt(document.getElementById('ownFree').value)||0;
+  const ownCoupon = parseInt(document.getElementById('ownCoupon').value)||0;
+
+  totalPaid += ownPaid;
+  totalFree += ownFree;
+  totalCoupon += ownCoupon;
+
   packs.forEach((pack,i)=>{
     const checkbox=document.getElementById(`pack${i}`);
-    if(checkbox.checked){
+    if(checkbox.checked || (pack.multiple && pack.max && pack.max>1)){
       let qty=1;
-      if(pack.multiple){
+      if(pack.multiple && pack.max && pack.max>1){
         qty=parseInt(document.getElementById(`qty${i}`).value)||0;
+      } else if(pack.multiple){
+        qty=parseInt(document.getElementById(`qty${i}`).value)||1;
       }
       totalPrice += pack.price*qty;
       totalPaid += pack.paid*qty;
@@ -168,7 +189,13 @@ function calculate(){
     <button onclick="calculate()">計算し直す</button>
   `;
 
-  const selectedPacks = packs.map((p,i)=>document.getElementById(`pack${i}`).checked?p.name:null).filter(Boolean);
+  const selectedPacks = packs.map((p,i)=>{
+    const checkbox=document.getElementById(`pack${i}`);
+    if(checkbox.checked || (p.multiple && p.max && p.max>1 && parseInt(document.getElementById(`qty${i}`).value)>0)){
+      return p.name;
+    } else return null;
+  }).filter(Boolean);
+
   if(selectedPacks.length>0){
     history.push({packs:selectedPacks,price:totalPrice});
     renderHistory();
