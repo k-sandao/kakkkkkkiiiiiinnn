@@ -1,8 +1,71 @@
-// src/App.js
-import React, { useState } from "react";
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>課金計算サイト</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background-color:#f0f0f0; }
+  h1,h2 { color: #333; }
+  .pack-container { display: flex; flex-wrap: wrap; gap: 15px; }
+  .pack-card {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 15px;
+    width: 280px;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
+    position: relative;
+  }
+  .pack-card label { display:block; margin-bottom:5px; font-weight:bold; color:#222; }
+  .pack-card p { margin: 5px 0; color:#444; }
+  .pack-card input[type=number] { width: 50px; margin-left:5px; }
+  .slider-container { display:flex; align-items:center; gap:10px; }
+  .slider-container input[type=range] { flex:1; }
+  .slider-value { width: 25px; text-align:center; }
+  .buttons { margin-top: 20px; }
+  button { margin:5px; padding:8px 12px; border-radius:5px; border:none; background-color:#4CAF50; color:white; cursor:pointer; font-weight:bold; }
+  button:hover { background-color:#45a049; }
+  .result { margin-top:20px; border-top:2px solid #333; padding:15px; background-color:#fff; border-radius:10px; }
+  #history { margin-top:15px; }
+  .input-own { margin:10px 0; }
+  .input-own label { margin-right:5px; font-weight:bold; }
+  .footer-links { margin-top:30px; text-align:center; }
+  .footer-links a { margin:0 10px; color:#1a73e8; text-decoration:none; font-weight:bold; }
+  .footer-links a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
 
-// パック一覧
-const packs = [
+<h1>課金計算サイト</h1>
+
+<h2>現在所持している石</h2>
+<div class="input-own">
+  <label>有償石:</label><input type="number" id="ownPaid" value="0" min="0">
+  <label>無償石:</label><input type="number" id="ownFree" value="0" min="0">
+  <label>クーポン:</label><input type="number" id="ownCoupon" value="0" min="0">
+</div>
+
+<h2>パック選択</h2>
+<div class="pack-container" id="packs"></div>
+
+<div class="buttons">
+  <button onclick="selectAll()">全て購入</button>
+  <button onclick="calculate()">計算する</button>
+  <button onclick="clearHistory()">履歴クリア</button>
+</div>
+
+<div class="result" id="result"></div>
+
+<h2>購入履歴</h2>
+<div id="history"></div>
+
+<div class="footer-links">
+  <a href="https://youtube.com/@air_player2424?si=2FZbvaDer_dxbt6Z" target="_blank">YouTube</a>
+  <a href="https://x.com/re62_kn?s=11&t=gadj8VbUyh21lOO3e5edZA" target="_blank">X</a>
+</div>
+
+<script>
+const defaultPacks = [
   { name: "魔導石195個パック", price: 7800, paid: 65, free: 130, multiple: false },
   { name: "魔導石120個パック", price: 4800, paid: 40, free: 80, multiple: false },
   { name: "魔導石75個パック", price: 3000, paid: 25, free: 50, multiple: false },
@@ -23,154 +86,110 @@ const packs = [
   { name: "魔導石4個", price: 480, paid: 4, free: 0, multiple: true },
   { name: "スタート応援パック", price: 1200, paid: 10, free: 0, multiple: false },
   { name: "育成応援パック", price: 480, paid: 4, free: 0, multiple: false },
-  { name: "魔導石月末パック", price: 3000, paid: 25, free: 25, coupon: 0, limit: 1 }, // 1回のみ
-  { name: "魔導石パックPremium(140)", price: 9800, paid: 50, free: 90, coupon: 0, limit: 3 }, // 最大3回
+  // 新しいパックを追加
+  { name: "魔導石月末パック", price: 1200, paid: 25, free: 25, multiple: false },
+  { name: "魔導石パックpremium(140)", price: 18000, paid: 50, free: 90, multiple: true, max:3 }
 ];
 
-function App() {
-  const [selected, setSelected] = useState({});
-  const [owned, setOwned] = useState({ paid: 0, free: 0, coupon: 0 });
+let packs = [...defaultPacks];
+let history = [];
 
-  const togglePack = (name) => {
-    setSelected((prev) => ({
-      ...prev,
-      [name]: prev[name] ? 0 : 1,
-    }));
-  };
-
-  const updateSlider = (name, value) => {
-    setSelected((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // 合計計算
-  const total = packs.reduce(
-    (acc, p) => {
-      const count = selected[p.name] || 0;
-      acc.price += p.price * count;
-      acc.paid += p.paid * count;
-      acc.free += p.free * count;
-      if (p.coupon) acc.coupon += p.coupon * count;
-      return acc;
-    },
-    { price: 0, paid: owned.paid, free: owned.free, coupon: owned.coupon }
-  );
-
-  return (
-    <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
-      <h1>魔導石購入シミュレーター</h1>
-
-      {/* 所持石入力欄 */}
-      <div style={{ marginBottom: "20px" }}>
-        <h2>現在の所持数</h2>
-        <label>
-          有償:
-          <input
-            type="number"
-            value={owned.paid}
-            onChange={(e) => setOwned({ ...owned, paid: Number(e.target.value) })}
-            style={{ width: "80px", marginRight: "10px" }}
-          />
-        </label>
-        <label>
-          無償:
-          <input
-            type="number"
-            value={owned.free}
-            onChange={(e) => setOwned({ ...owned, free: Number(e.target.value) })}
-            style={{ width: "80px", marginRight: "10px" }}
-          />
-        </label>
-        <label>
-          クーポン:
-          <input
-            type="number"
-            value={owned.coupon}
-            onChange={(e) => setOwned({ ...owned, coupon: Number(e.target.value) })}
-            style={{ width: "80px" }}
-          />
-        </label>
-      </div>
-
-      {/* パック選択 */}
-      <div>
-        {packs.map((p) => {
-          const count = selected[p.name] || 0;
-
-          // 1回しか買えない or multiple:false の場合はチェックボックス
-          if (!p.limit && !p.multiple) {
-            return (
-              <div key={p.name}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={!!count}
-                    onChange={() => togglePack(p.name)}
-                  />
-                  {p.name} ({p.price}円, 有償{p.paid}, 無償{p.free}
-                  {p.coupon ? `, クーポン${p.coupon}` : ""})
-                </label>
-              </div>
-            );
-          }
-
-          // 制限ありスライダー
-          if (p.limit) {
-            return (
-              <div key={p.name} style={{ marginBottom: "20px" }}>
-                <label>
-                  {p.name} ({p.price}円, 有償{p.paid}, 無償{p.free}
-                  {p.coupon ? `, クーポン${p.coupon}` : ""})
-                </label>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <input
-                    type="range"
-                    min="0"
-                    max={p.limit}
-                    value={count}
-                    onChange={(e) => updateSlider(p.name, Number(e.target.value))}
-                    style={{ flex: 1, marginRight: "10px" }}
-                  />
-                  {/* スライダー上に数字 */}
-                  <span style={{ fontSize: "18px", fontWeight: "bold" }}>
-                    {count}
-                  </span>
-                  {/* 右端に最大値 */}
-                  {count !== p.limit && (
-                    <span style={{ marginLeft: "10px" }}>{p.limit}</span>
-                  )}
-                </div>
-              </div>
-            );
-          }
-
-          // 複数回無制限購入できるもの
-          return (
-            <div key={p.name}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={!!count}
-                  onChange={() => togglePack(p.name)}
-                />
-                {p.name} ({p.price}円, 有償{p.paid}, 無償{p.free}
-                {p.coupon ? `, クーポン${p.coupon}` : ""})
-              </label>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* 合計表示 */}
-      <h2>合計</h2>
-      <p>金額: {total.price}円</p>
-      <p>有償: {total.paid}個</p>
-      <p>無償: {total.free}個</p>
-      <p>クーポン: {total.coupon}枚</p>
-    </div>
-  );
+function renderPacks() {
+  const container = document.getElementById('packs');
+  container.innerHTML = '';
+  packs.forEach((pack,index)=>{
+    let html = `<div class="pack-card">
+      <input type="checkbox" id="pack${index}"> <label for="pack${index}">${pack.name}</label>
+      <p>￥${pack.price} | 有償${pack.paid} 無償${pack.free} クーポン${pack.coupon||0}</p>`;
+    if(pack.multiple && pack.max && pack.max>1){
+      html += `<div class="slider-container">
+        <input type="range" id="qty${index}" min="0" max="${pack.max}" value="0" oninput="document.getElementById('val${index}').textContent=this.value">
+        <span class="slider-value" id="val${index}">0</span>
+        <span style="margin-left:5px;">/${pack.max}</span>
+      </div>`;
+    } else if(pack.multiple){
+      html += `数量: <input type="number" id="qty${index}" value="1" min="1">`;
+    }
+    if(pack.coupon && pack.coupon>0){
+      html += `<br><input type="checkbox" id="coupon${index}" checked> <label for="coupon${index}">クーポンをパワー計算に含める</label>`;
+    }
+    html += '</div>';
+    container.innerHTML += html;
+  });
 }
 
-export default App;
+function selectAll(){
+  packs.forEach((_,i)=>{document.getElementById(`pack${i}`).checked=true;});
+}
+
+function calculate(){
+  let totalPrice=0, totalPaid=parseInt(document.getElementById('ownPaid').value)||0, totalFree=parseInt(document.getElementById('ownFree').value)||0, totalCoupon=parseInt(document.getElementById('ownCoupon').value)||0;
+  let paidPower=0, freePower=0, couponPower=0;
+  let paidRemainder=0, freeRemainder=0;
+
+  packs.forEach((pack,i)=>{
+    const checkbox=document.getElementById(`pack${i}`);
+    if(checkbox.checked){
+      let qty=1;
+      if(pack.multiple){
+        qty=parseInt(document.getElementById(`qty${i}`).value)||0;
+      }
+      totalPrice += pack.price*qty;
+      totalPaid += pack.paid*qty;
+      totalFree += pack.free*qty;
+      if(pack.coupon && pack.coupon>0){
+        const couponCheck=document.getElementById(`coupon${i}`);
+        if(couponCheck.checked) totalCoupon += pack.coupon*qty;
+      }
+    }
+  });
+
+  paidPower += Math.floor(totalPaid/50)*40;
+  paidRemainder = totalPaid%50;
+  paidPower += Math.floor(paidRemainder/5)*4;
+  paidRemainder = paidRemainder%5;
+
+  freePower += Math.floor(totalFree/50)*10;
+  freeRemainder = totalFree%50;
+  freePower += Math.floor(freeRemainder/5)*1;
+  freeRemainder = freeRemainder%5;
+
+  couponPower = totalCoupon*1;
+
+  const totalPower = paidPower + freePower + couponPower;
+
+  const resultDiv=document.getElementById('result');
+  resultDiv.innerHTML = `
+    <p>合計金額: ￥${totalPrice}</p>
+    <p>合計有償石: ${totalPaid} (余り ${paidRemainder}) パワー${paidPower})</p>
+    <p>合計無償石: ${totalFree} (余り ${freeRemainder}) パワー${freePower})</p>
+    <p>合計ガチャクーポン: ${totalCoupon} パワー${couponPower}</p>
+    <p>推定ガチャパワー合計: ${totalPower}</p>
+    <button onclick="calculate()">計算し直す</button>
+  `;
+
+  const selectedPacks = packs.map((p,i)=>document.getElementById(`pack${i}`).checked?p.name:null).filter(Boolean);
+  if(selectedPacks.length>0){
+    history.push({packs:selectedPacks,price:totalPrice});
+    renderHistory();
+  }
+}
+
+function renderHistory(){
+  const historyDiv=document.getElementById('history');
+  historyDiv.innerHTML='';
+  history.forEach((h,i)=>{
+    historyDiv.innerHTML += `<p>${i+1}: ${h.packs.join(', ')} ￥${h.price}</p>`;
+  });
+}
+
+function clearHistory(){
+  history=[];
+  renderHistory();
+}
+
+renderPacks();
+</script>
+
+</body>
+</html>
