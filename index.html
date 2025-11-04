@@ -14,44 +14,71 @@
     width: 280px;
     box-shadow: 2px 2px 8px rgba(0,0,0,0.15);
     position: relative;
+    transition: opacity 0.3s ease;
+    background: #dfefff;
   }
   .pack-card label { display:block; margin-bottom:5px; font-weight:bold; color:#222; }
   .pack-card p { margin: 5px 0; color:#444; }
-  .pack-card input[type=number] { width: 50px; margin-left:5px; }
-  .slider-container { display:flex; align-items:center; gap:10px; }
-  .slider-container input[type=range] { flex:1; }
-  .slider-value { width: 25px; text-align:center; }
+  .pack-card input[type=number] { width: 60px; margin-left:5px; }
   .buttons { margin-top: 20px; }
   button { margin:5px; padding:8px 12px; border-radius:5px; border:none; background-color:#4CAF50; color:white; cursor:pointer; font-weight:bold; }
   button:hover { background-color:#45a049; }
   .result { margin-top:20px; border-top:2px solid #333; padding:15px; background-color:#fff; border-radius:10px; }
   #history { margin-top:15px; }
   .input-own { margin:10px 0; }
-  .input-own label { margin-right:5px; font-weight:bold; }
+  .input-own label { margin-right:8px; font-weight:bold; }
   .footer-links { margin-top:30px; text-align:center; }
   .footer-links a { margin:0 10px; color:#1a73e8; text-decoration:none; font-weight:bold; }
   .footer-links a:hover { text-decoration:underline; }
-  /* 背景色グループ */
   .blue { background-color: #d0e7ff; }
   .orange { background-color: #ffe0c0; }
   .green { background-color: #d0ffd8; }
   .purple { background-color: #e6d0ff; }
-  .yellow { background-color: #fff8b0; }
+  .category {
+    margin-bottom: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+  .category-header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .category-content {
+    padding: 10px;
+  }
+  .hidden { display: none; }
+  .disabled-mark { pointer-events: none; }
+  /* mimic screenshot top inputs style */
+  .top-row { margin-bottom: 18px; }
+  .top-row label { margin-right: 6px; }
+  input[type=number].top-input { width: 80px; margin-right: 12px; }
 </style>
 </head>
 <body>
 
 <h1>課金計算サイト</h1>
 
+<!-- 現在所持している石（スクショと同じ位置・見た目を維持） -->
 <h2>現在所持している石</h2>
-<div class="input-own">
-  <label>有償石:</label><input type="number" id="ownPaid" value="0" min="0">
-  <label>無償石:</label><input type="number" id="ownFree" value="0" min="0">
-  <label>クーポン:</label><input type="number" id="ownCoupon" value="0" min="0">
+<div class="input-own top-row">
+  <label>有償石:</label><input class="top-input" type="number" id="ownPaid" value="0" min="0">
+  <label>無償石:</label><input class="top-input" type="number" id="ownFree" value="0" min="0">
+  <label>クーポン:</label><input class="top-input" type="number" id="ownCoupon" value="0" min="0">
+  <label style="margin-left:10px;">
+    <input type="checkbox" id="includeCoupons" checked> クーポンをガチャパワー計算に含める
+  </label>
 </div>
 
 <h2>パック選択</h2>
-<div class="pack-container" id="packs"></div>
+<div id="categories"></div>
 
 <div class="buttons">
   <button onclick="selectAll()">全て購入</button>
@@ -65,175 +92,267 @@
 <div id="history"></div>
 
 <div class="footer-links">
-  <a href="https://youtube.com/@air_player2424?si=2FZbvaDer_dxbt6Z" target="_blank">YouTube</a>
+  <a href="https://youtube.com/@air_player2424" target="_blank">YouTube</a>
   <a href="https://x.com/re62_kn?s=11&t=gadj8VbUyh21lOO3e5edZA" target="_blank">X</a>
 </div>
 
 <script>
+/* 全パックデータ：青・オレンジ・緑は元のまま残し、紫は unlimited=true のものを数量入力に */
 const defaultPacks = [
-  // 薄い青5個
-  { name: "魔導石195個パック(アプリ内）", price: 7800, paid: 65, free: 130, multiple: false, color:'blue' },
-  { name: "魔導石120個パック(アプリ内）", price: 4800, paid: 40, free: 80, multiple: false, color:'blue' },
-  { name: "魔導石75個パック(アプリ内）", price: 3000, paid: 25, free: 50, multiple: false, color:'blue' },
-  { name: "魔導石33個パック(アプリ内）", price: 1200, paid: 10, free: 23, multiple: false, color:'blue' },
-  { name: "魔導石25個パック(アプリ内）", price: 480, paid: 4, free: 21, multiple: false, color:'blue' },
+  // 青（元どおり）
+  { name: "魔導石195個パック(アプリ内）", price: 7800, paid: 65, free: 130, color:'blue' },
+  { name: "魔導石120個パック(アプリ内）", price: 4800, paid: 40, free: 80, color:'blue' },
+  { name: "魔導石75個パック(アプリ内）", price: 3000, paid: 25, free: 50, color:'blue' },
+  { name: "魔導石33個パック(アプリ内）", price: 1200, paid: 10, free: 23, color:'blue' },
+  { name: "魔導石25個パック(アプリ内）", price: 480, paid: 4, free: 21, color:'blue' },
+  { name: "魔導石195個パック（公式ストア）", price: 7800, paid: 65, free: 150, color:'blue' },
+  { name: "魔導石120個パック（公式ストア）", price: 4800, paid: 40, free: 92, color:'blue' },
+  { name: "魔導石75個パック（公式ストア）", price: 3000, paid: 25, free: 57, color:'blue' },
+  { name: "魔導石33個パック（公式ストア）", price: 1200, paid: 10, free: 26, color:'blue' },
+  { name: "魔導石25個パック（公式ストア）", price: 480, paid: 4, free: 22, color:'blue' },
 
-  { name: "魔導石195個パック（公式ストア）", price: 7800, paid: 65, free: 150, multiple: false, color:'blue' },
-  { name: "魔導石120個パック（公式ストア）", price: 4800, paid: 40, free: 92, multiple: false, color:'blue' },
-  { name: "魔導石75個パック（公式ストア）", price: 3000, paid: 25, free: 57, multiple: false, color:'blue' },
-  { name: "魔導石33個パック（公式ストア）", price: 1200, paid: 10, free: 26, multiple: false, color:'blue' },
-  { name: "魔導石25個パック（公式ストア）", price: 480, paid: 4, free: 22, multiple: false, color:'blue' },
-  
-  // 薄いオレンジ3個
-  { name: "アイドルマスターコラボガチャクーポンDXパック(アプリ内）", price: 4800, paid: 40, free: 0, coupon: 10, multiple: false, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンSPパック(アプリ内）", price: 2400, paid: 20, free: 0, coupon: 20, multiple: false, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンパック(アプリ内）", price: 1200, paid: 10, free: 0, coupon: 20, multiple: false, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンミニパック(アプリ内）", price: 480, paid: 4, free: 0, coupon: 20, multiple: false, color:'orange' },
-  
-  { name: "アイドルマスターコラボガチャクーポンDXパック（公式ストア）", price: 4800, paid: 40, free: 12, coupon: 10, multiple: false, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンSPパック（公式ストア）", price: 2400, paid: 20, free: 6, coupon: 20, multiple: false, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンパック（公式ストア）", price: 1200, paid: 10, free: 3, coupon: 20, multiple: false, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンミニパック（公式ストア）", price: 480, paid: 4, free: 1, coupon: 20, multiple: false, color:'orange' },
+  // オレンジ（クーポン）
+  { name: "アイドルマスターコラボガチャクーポンDXパック(アプリ内）", price: 4800, paid: 40, free: 0, coupon: 10, color:'orange' },
+  { name: "アイドルマスターコラボガチャクーポンSPパック(アプリ内）", price: 2400, paid: 20, free: 0, coupon: 20, color:'orange' },
+  { name: "アイドルマスターコラボガチャクーポンパック(アプリ内）", price: 1200, paid: 10, free: 0, coupon: 20, color:'orange' },
+  { name: "アイドルマスターコラボガチャクーポンミニパック(アプリ内）", price: 480, paid: 4, free: 0, coupon: 20, color:'orange' },
+  { name: "アイドルマスターコラボガチャクーポンDXパック（公式ストア）", price: 4800, paid: 40, free: 12, coupon: 10, color:'orange' },
+  { name: "アイドルマスターコラボガチャクーポンSPパック（公式ストア）", price: 2400, paid: 20, free: 6, coupon: 20, color:'orange' },
+  { name: "アイドルマスターコラボガチャクーポンパック（公式ストア）", price: 1200, paid: 10, free: 3, coupon: 20, color:'orange' },
+  { name: "アイドルマスターコラボガチャクーポンミニパック（公式ストア）", price: 480, paid: 4, free: 1, coupon: 20, color:'orange' },
 
-  
-  // 薄い緑5個
-  { name: "月間公式ストアパック55", price: 1200, paid: 10, free: 45, multiple: false, color:'green' },
-  { name: "魔導石50個パック", price: 960, paid: 8, free: 42, multiple: false, color:'green' },
-  { name: "月間公式ストアパック300", price: 18000, paid: 150, free: 150, multiple: false, color:'green' },
-  { name: "魔導石26個（公式ストア）", price: 3000, paid: 25, free: 1, multiple: true, color:'green' },
-  { name: "魔導石43個（公式ストア）", price: 4800, paid: 40, free: 3, multiple: true, color:'green' },
-  { name: "魔導石71個（公式ストア）", price: 7800, paid: 65, free: 6, multiple: true, color:'green' },
-  
-  // 薄い紫7個
-  { name: "魔導石65個(アプリ内）", price: 7800, paid: 65, free: 0, multiple: true, color:'purple' },
-  { name: "魔導石40個(アプリ内）", price: 4800, paid: 40, free: 0, multiple: true, color:'purple' },
-  { name: "魔導石25個(アプリ内）", price: 3000, paid: 25, free: 0, multiple: true, color:'purple' },
-  { name: "魔導石10個(アプリ内）", price: 1200, paid: 10, free: 0, multiple: true, color:'purple' },
-  { name: "魔導石4個(アプリ内）", price: 480, paid: 4, free: 0, multiple: true, color:'purple' },
-  { name: "スタート応援パック", price: 1200, paid: 10, free: 0, multiple: false, color:'purple' },
-  { name: "育成応援パック", price: 480, paid: 4, free: 0, multiple: false, color:'purple' },
-  
-  // 薄い黄2個
-  //{ name: "魔導石月末パック", price: 1200, paid: 25, free: 25, multiple: false, color:'yellow' },
-  //{ name: "魔導石パックpremium(140)", price: 18000, paid: 50, free: 90, multiple: true, max:3, color:'yellow' }
+  // 緑
+  { name: "月間公式ストアパック55", price: 1200, paid: 10, free: 45, color:'green' },
+  { name: "魔導石50個パック", price: 960, paid: 8, free: 42, color:'green' },
+  { name: "月間公式ストアパック300", price: 18000, paid: 150, free: 150, color:'green' },
+  { name: "魔導石26個（公式ストア）", price: 3000, paid: 25, free: 1, color:'green' },
+  { name: "魔導石43個（公式ストア）", price: 4800, paid: 40, free: 3, color:'green' },
+  { name: "魔導石71個（公式ストア）", price: 7800, paid: 65, free: 6, color:'green' },
+
+  // 紫：8個は無制限（数量入力）、2個は1回限り（チェック）
+  { name: "魔導石65個(アプリ内）", price: 7800, paid: 65, free: 0, color:'purple', unlimited:true },
+  { name: "魔導石40個(アプリ内）", price: 4800, paid: 40, free: 0, color:'purple', unlimited:true },
+  { name: "魔導石25個(アプリ内）", price: 3000, paid: 25, free: 0, color:'purple', unlimited:true },
+  { name: "魔導石10個(アプリ内）", price: 1200, paid: 10, free: 0, color:'purple', unlimited:true },
+  { name: "魔導石4個(アプリ内）", price: 480, paid: 4, free: 0, color:'purple', unlimited:true },
+  { name: "魔導石71個(公式ストア）", price: 7800, paid: 65, free: 6, color:'purple', unlimited:true },
+  { name: "魔導石43個(公式ストア）", price: 4800, paid: 40, free: 3, color:'purple', unlimited:true },
+  { name: "魔導石26個(公式ストア）", price: 3000, paid: 25, free: 1, color:'purple', unlimited:true },
+  { name: "スタート応援パック", price: 1200, paid: 10, free: 0, color:'purple', unlimited:false },
+  { name: "育成応援パック", price: 480, paid: 4, free: 0, color:'purple', unlimited:false }
 ];
 
-let packs = [...defaultPacks];
 let history = [];
 
 function renderPacks() {
-  const container = document.getElementById('packs');
+  const categories = {};
+  defaultPacks.forEach(p => {
+    if (!categories[p.color]) categories[p.color] = [];
+    categories[p.color].push(p);
+  });
+
+  const container = document.getElementById("categories");
   container.innerHTML = '';
-  packs.forEach((pack,index)=>{
-    let html = `<div class="pack-card ${pack.color}">
-      <input type="checkbox" id="pack${index}"> <label for="pack${index}">${pack.name}</label>
-      <p>￥${pack.price} | 有償${pack.paid} 無償${pack.free} クーポン${pack.coupon||0}</p>`;
-    if(pack.multiple && pack.max && pack.max>1){
-      html += `<div class="slider-container">
-        <input type="range" id="qty${index}" min="0" max="${pack.max}" value="0" oninput="document.getElementById('val${index}').textContent=this.value">
-        <span class="slider-value" id="val${index}">0</span>/<span>${pack.max}</span>
-      </div>`;
-    } else if(pack.multiple){
-      html += `数量: <input type="number" id="qty${index}" value="1" min="1">`;
+
+  const categoryNames = {
+    blue: "おまけつき魔導石パック",
+    orange: "クーポンパック",
+    green: "公式ストア限定パック",
+    purple: "石のみパック"
+  };
+
+  Object.keys(categories).forEach(color => {
+    const catDiv = document.createElement("div");
+    catDiv.className = "category";
+
+    const header = document.createElement("div");
+    header.className = "category-header";
+    header.innerHTML = `${categoryNames[color] || color} <span>▼</span>`;
+
+    const content = document.createElement("div");
+    content.className = "category-content";
+
+    const packContainer = document.createElement("div");
+    packContainer.className = "pack-container";
+
+    categories[color].forEach((pack, index) => {
+      const i = defaultPacks.indexOf(pack);
+      let html = `<div class="pack-card ${pack.color}">`;
+
+      if (color === 'purple' && pack.unlimited) {
+        // 紫の無制限は数量入力（UIの他要素は変えない）
+        html += `
+            <label>${pack.name}</label>
+            <p>￥${pack.price} | 有償${pack.paid} 無償${pack.free} クーポン${pack.coupon||0}</p>
+            <label>購入数: <input type="number" id="qty${i}" min="0" value="0"></label>
+        `;
+      } else {
+        // その他はチェックボックス（紫の unlimited:false もここ）
+        html += `
+            <input type="checkbox" id="pack${i}">
+            <label for="pack${i}">${pack.name}</label>
+            <p>￥${pack.price} | 有償${pack.paid} 無償${pack.free} ${pack.coupon ? `| クーポン${pack.coupon}` : ''}</p>
+        `;
+      }
+
+      html += `</div>`;
+      packContainer.innerHTML += html;
+    });
+
+    content.appendChild(packContainer);
+    catDiv.appendChild(header);
+    catDiv.appendChild(content);
+    container.appendChild(catDiv);
+
+    // 折りたたみ動作（▲/▼を正しく切り替え）
+    header.addEventListener("click", () => {
+      content.classList.toggle("hidden");
+      const span = header.querySelector("span");
+      if (content.classList.contains("hidden")) span.textContent = "▲"; else span.textContent = "▼";
+    });
+  });
+
+  // 描画後に相互排他イベントをセット（チェックボックスのみ対象）
+  setupMutualExclusion();
+}
+
+function setupMutualExclusion() {
+  const pairs = [
+    ["魔導石195個パック(アプリ内）", "魔導石195個パック（公式ストア）"],
+    ["魔導石120個パック(アプリ内）", "魔導石120個パック（公式ストア）"],
+    ["魔導石75個パック(アプリ内）", "魔導石75個パック（公式ストア）"],
+    ["魔導石33個パック(アプリ内）", "魔導石33個パック（公式ストア）"],
+    ["魔導石25個パック(アプリ内）", "魔導石25個パック（公式ストア）"],
+    ["アイドルマスターコラボガチャクーポンDXパック(アプリ内）", "アイドルマスターコラボガチャクーポンDXパック（公式ストア）"],
+    ["アイドルマスターコラボガチャクーポンSPパック(アプリ内）", "アイドルマスターコラボガチャクーポンSPパック（公式ストア）"],
+    ["アイドルマスターコラボガチャクーポンパック(アプリ内）", "アイドルマスターコラボガチャクーポンパック（公式ストア）"],
+    ["アイドルマスターコラボガチャクーポンミニパック(アプリ内）", "アイドルマスターコラボガチャクーポンミニパック（公式ストア）"]
+  ];
+
+  pairs.forEach(([appName, storeName]) => {
+    const appIndex = defaultPacks.findIndex(p => p.name === appName);
+    const storeIndex = defaultPacks.findIndex(p => p.name === storeName);
+    if (appIndex === -1 || storeIndex === -1) return;
+
+    const appCheck = document.getElementById(`pack${appIndex}`);
+    const storeCheck = document.getElementById(`pack${storeIndex}`);
+    // チェックボックスでない場合は対象外（紫の数量入力など）
+    if (!appCheck || !storeCheck) return;
+
+    const appCard = appCheck.closest(".pack-card");
+    const storeCard = storeCheck.closest(".pack-card");
+
+    function updateState() {
+      if (appCheck.checked) {
+        storeCheck.disabled = true;
+        if (storeCard) storeCard.style.opacity = "0.5";
+        if (storeCard && !storeCard.querySelector(".disabled-mark")) {
+          const mark = document.createElement("div");
+          mark.textContent = "×";
+          mark.classList.add("disabled-mark");
+          mark.style.position = "absolute";
+          mark.style.top = "5px";
+          mark.style.right = "10px";
+          mark.style.fontSize = "20px";
+          mark.style.color = "red";
+          mark.style.fontWeight = "bold";
+          storeCard.appendChild(mark);
+        }
+      } else if (storeCheck.checked) {
+        appCheck.disabled = true;
+        if (appCard) appCard.style.opacity = "0.5";
+        if (appCard && !appCard.querySelector(".disabled-mark")) {
+          const mark = document.createElement("div");
+          mark.textContent = "×";
+          mark.classList.add("disabled-mark");
+          mark.style.position = "absolute";
+          mark.style.top = "5px";
+          mark.style.right = "10px";
+          mark.style.fontSize = "20px";
+          mark.style.color = "red";
+          mark.style.fontWeight = "bold";
+          appCard.appendChild(mark);
+        }
+      } else {
+        [appCheck, storeCheck].forEach(chk => chk.disabled = false);
+        [appCard, storeCard].forEach(card => {
+          if (!card) return;
+          card.style.opacity = "1";
+          const mark = card.querySelector(".disabled-mark");
+          if (mark) mark.remove();
+        });
+      }
     }
-    if(pack.coupon && pack.coupon>0){
-      html += `<br><input type="checkbox" id="coupon${index}" checked> <label for="coupon${index}">クーポンをパワー計算に含める</label>`;
-    }
-    html += '</div>';
-    container.innerHTML += html;
+
+    appCheck.addEventListener("change", updateState);
+    storeCheck.addEventListener("change", updateState);
   });
 }
 
 function selectAll(){
-  packs.forEach((_,i)=>{
+  defaultPacks.forEach((_,i)=>{
     const checkbox=document.getElementById(`pack${i}`);
-    if(checkbox) checkbox.checked=true;
+    if(checkbox && !checkbox.disabled) checkbox.checked=true;
+    const qty = document.getElementById(`qty${i}`);
+    if(qty) qty.value = 1; // 紫の数量入力は1にする
   });
 }
 
 function calculate(){
+  calcAndShow();
+}
+
+function calcAndShow(){
   let totalPrice=0, totalPaid=0, totalFree=0, totalCoupon=0;
-  let paidPower=0, freePower=0, couponPower=0;
-  let paidRemainder=0, freeRemainder=0;
+  const ownPaid=parseInt(document.getElementById('ownPaid').value)||0;
+  const ownFree=parseInt(document.getElementById('ownFree').value)||0;
+  const ownCoupon=parseInt(document.getElementById('ownCoupon').value)||0;
+  totalPaid += ownPaid; totalFree += ownFree; totalCoupon += ownCoupon;
 
-  const ownPaid = parseInt(document.getElementById('ownPaid').value)||0;
-  const ownFree = parseInt(document.getElementById('ownFree').value)||0;
-  const ownCoupon = parseInt(document.getElementById('ownCoupon').value)||0;
+  const includeCoupons = document.getElementById('includeCoupons').checked;
 
-  totalPaid += ownPaid;
-  totalFree += ownFree;
-  totalCoupon += ownCoupon;
-
-  packs.forEach((pack,i)=>{
-    const checkbox=document.getElementById(`pack${i}`);
-    if(checkbox.checked || (pack.multiple && pack.max && pack.max>1)){
-      let qty=1;
-      if(pack.multiple && pack.max && pack.max>1){
-        qty=parseInt(document.getElementById(`qty${i}`).value)||0;
-      } else if(pack.multiple){
-        qty=parseInt(document.getElementById(`qty${i}`).value)||1;
+  defaultPacks.forEach((pack,i)=>{
+    if (pack.color === 'purple' && pack.unlimited) {
+      const qty = parseInt(document.getElementById(`qty${i}`)?.value) || 0;
+      if (qty > 0) {
+        totalPrice += pack.price * qty;
+        totalPaid += (pack.paid || 0) * qty;
+        totalFree += (pack.free || 0) * qty;
+        if (includeCoupons && pack.coupon) totalCoupon += (pack.coupon || 0) * qty;
       }
-      totalPrice += pack.price*qty;
-      totalPaid += pack.paid*qty;
-      totalFree += pack.free*qty;
-      if(pack.coupon && pack.coupon>0){
-        const couponCheck=document.getElementById(`coupon${i}`);
-        if(couponCheck.checked) totalCoupon += pack.coupon*qty;
+    } else {
+      const checkbox = document.getElementById(`pack${i}`);
+      if (checkbox && checkbox.checked) {
+        totalPrice += pack.price;
+        totalPaid += (pack.paid || 0);
+        totalFree += (pack.free || 0);
+        if (includeCoupons && pack.coupon) totalCoupon += (pack.coupon || 0);
       }
     }
   });
 
-  paidPower += Math.floor(totalPaid/50)*40;
-  paidRemainder = totalPaid%50;
-  paidPower += Math.floor(paidRemainder/5)*4;
-  paidRemainder = paidRemainder%5;
+  // 元の式を維持：有償50ごとに40、無償50ごとに10、クーポンはそのまま足す
+  const totalPower = Math.floor(totalPaid/50)*40 + Math.floor(totalFree/50)*10 + totalCoupon;
 
-  freePower += Math.floor(totalFree/50)*10;
-  freeRemainder = totalFree%50;
-  freePower += Math.floor(freeRemainder/5)*1;
-  freeRemainder = freeRemainder%5;
-
-  couponPower = totalCoupon*1;
-
-  const totalPower = paidPower + freePower + couponPower;
-
-  const resultDiv=document.getElementById('result');
-  resultDiv.innerHTML = `
-    <p>合計金額: ￥${totalPrice}</p>
-    <p>合計有償石: ${totalPaid} (余り ${paidRemainder}) パワー${paidPower})</p>
-    <p>合計無償石: ${totalFree} (余り ${freeRemainder}) パワー${freePower})</p>
-    <p>合計ガチャクーポン: ${totalCoupon} パワー${couponPower}</p>
-    <p>推定ガチャパワー合計: ${totalPower}</p>
-    <button onclick="calculate()">計算し直す</button>
-  `;
-
-  const selectedPacks = packs.map((p,i)=>{
-    const checkbox=document.getElementById(`pack${i}`);
-    if(checkbox.checked || (p.multiple && p.max && p.max>1 && parseInt(document.getElementById(`qty${i}`).value)>0)){
-      return p.name;
-    } else return null;
-  }).filter(Boolean);
-
-  if(selectedPacks.length>0){
-    history.push({packs:selectedPacks,price:totalPrice});
-    renderHistory();
-  }
-}
-
-function renderHistory(){
-  const historyDiv=document.getElementById('history');
-  historyDiv.innerHTML='';
-  history.forEach((h,i)=>{
-    historyDiv.innerHTML += `<p>${i+1}: ${h.packs.join(', ')} ￥${h.price}</p>`;
-  });
+  document.getElementById("result").innerHTML = `
+    <p>合計金額: ￥${totalPrice.toLocaleString()}</p>
+    <p>有償石: ${totalPaid}</p>
+    <p>無償石: ${totalFree}</p>
+    <p>クーポン: ${totalCoupon} ${includeCoupons ? '' : '(計算に含めない設定)'}</p>
+    <p><b>推定ガチャパワー: ${totalPower}</b></p>`;
 }
 
 function clearHistory(){
-  history=[];
-  renderHistory();
+  history=[]; document.getElementById('history').innerHTML='';
 }
 
+// イベント：入力変化で自動再計算（UIは変えない）
+document.body.addEventListener("input", calcAndShow);
+document.getElementById("includeCoupons").addEventListener("change", calcAndShow);
+
+// 初期描画
 renderPacks();
+calcAndShow();
 </script>
 
 </body>
