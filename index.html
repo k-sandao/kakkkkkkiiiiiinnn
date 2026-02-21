@@ -99,7 +99,7 @@
 <script>
 /* 全パックデータ：青・オレンジ・緑は元のまま残し、紫は unlimited=true のものを数量入力に */
 const defaultPacks = [
-  // 青（元どおり）
+  // 青
   { name: "魔導石195個パック(アプリ内）", price: 7800, paid: 65, free: 130, color:'blue' },
   { name: "魔導石120個パック(アプリ内）", price: 4800, paid: 40, free: 80, color:'blue' },
   { name: "魔導石75個パック(アプリ内）", price: 3000, paid: 25, free: 50, color:'blue' },
@@ -110,25 +110,25 @@ const defaultPacks = [
   { name: "魔導石75個パック（公式ストア）", price: 3000, paid: 25, free: 57, color:'blue' },
   { name: "魔導石33個パック（公式ストア）", price: 1200, paid: 10, free: 26, color:'blue' },
   { name: "魔導石25個パック（公式ストア）", price: 480, paid: 4, free: 22, color:'blue' },
+  { name: "月末パック", price: 3000, paid: 25, free: 25, color:'blue' },
+  { name: "月初パック", price: 4800, paid: 40, free: 40, color:'blue' },
 
   // オレンジ（クーポン）
-  { name: "アイドルマスターコラボガチャクーポンDXパック(アプリ内）", price: 4800, paid: 40, free: 0, coupon: 50, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンSPパック(アプリ内）", price: 2400, paid: 20, free: 0, coupon: 20, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンパック(アプリ内）", price: 1200, paid: 10, free: 0, coupon: 10, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンミニパック(アプリ内）", price: 480, paid: 4, free: 0, coupon: 5, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンDXパック（公式ストア）", price: 4800, paid: 40, free: 12, coupon: 50, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンSPパック（公式ストア）", price: 2400, paid: 20, free: 6, coupon: 20, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンパック（公式ストア）", price: 1200, paid: 10, free: 3, coupon: 10, color:'orange' },
-  { name: "アイドルマスターコラボガチャクーポンミニパック（公式ストア）", price: 480, paid: 4, free: 1, coupon: 5, color:'orange' },
+  { name: "クーポンDXパック(アプリ内）", price: 4800, paid: 40, free: 0, coupon: 50, color:'orange' },
+  { name: "クーポンSPパック(アプリ内）", price: 2400, paid: 20, free: 0, coupon: 20, color:'orange' },
+  { name: "クーポンパック(アプリ内）", price: 1200, paid: 10, free: 0, coupon: 10, color:'orange' },
+  { name: "クーポンミニパック(アプリ内）", price: 480, paid: 4, free: 0, coupon: 5, color:'orange' },
+  { name: "クーポンDXパック（公式ストア）", price: 4800, paid: 40, free: 12, coupon: 50, color:'orange' },
+  { name: "クーポンSPパック（公式ストア）", price: 2400, paid: 20, free: 6, coupon: 20, color:'orange' },
+  { name: "クーポンパック（公式ストア）", price: 1200, paid: 10, free: 3, coupon: 10, color:'orange' },
+  { name: "クーポンミニパック（公式ストア）", price: 480, paid: 4, free: 1, coupon: 5, color:'orange' },
 
   // 緑
   { name: "月間公式ストアパック55", price: 1200, paid: 10, free: 45, color:'green' },
   { name: "魔導石50個パック", price: 960, paid: 8, free: 42, color:'green' },
   { name: "月間公式ストアパック300", price: 18000, paid: 150, free: 150, color:'green' },
-  { name: "魔導石26個（公式ストア）", price: 3000, paid: 25, free: 1, color:'green' },
-  { name: "魔導石43個（公式ストア）", price: 4800, paid: 40, free: 3, color:'green' },
-  { name: "魔導石71個（公式ストア）", price: 7800, paid: 65, free: 6, color:'green' },
-
+  
+  
   // 紫：8個は無制限（数量入力）、2個は1回限り（チェック）
   { name: "魔導石65個(アプリ内）", price: 7800, paid: 65, free: 0, color:'purple', unlimited:true },
   { name: "魔導石40個(アプリ内）", price: 4800, paid: 40, free: 0, color:'purple', unlimited:true },
