@@ -332,13 +332,15 @@ function calcAndShow(){
   });
 
   // 元の式を維持：有償50ごとに40、無償50ごとに10、クーポンはそのまま足す
-  const totalPower = Math.floor(totalPaid/50)*40 + Math.floor(totalFree/50)*10 + totalCoupon;
+  const totalPower = Math.floor(totalPaid/50)*4 + Math.floor(totalFree/50)*1 + totalCoupon;
 
   document.getElementById("result").innerHTML = `
     <p>合計金額: ￥${totalPrice.toLocaleString()}</p>
     <p>有償石: ${totalPaid}</p>
     <p>無償石: ${totalFree}</p>
     <p>クーポン: ${totalCoupon} ${includeCoupons ? '' : '(計算に含めない設定)'}</p>
+    <p>残った有償石: ${remainPaid}</p>
+    <p>残った無償石: ${remainFree}</p>
     <p><b>推定ガチャパワー: ${totalPower}</b></p>`;
 }
 
