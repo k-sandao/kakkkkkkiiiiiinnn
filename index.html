@@ -64,7 +64,7 @@
 </head>
 <body>
 
-<h1>課金計算サイト　現在修正中　ご利用になれません</h1>
+<h1>課金計算サイト</h1>
 
 <!-- 現在所持している石（スクショと同じ位置・見た目を維持） -->
 <h2>現在所持している石</h2>
@@ -128,7 +128,6 @@ const defaultPacks = [
   { name: "魔導石50個パック", price: 960, paid: 8, free: 42, color:'green' },
   { name: "月間公式ストアパック300", price: 18000, paid: 150, free: 150, color:'green' },
   
-  
   // 紫：8個は無制限（数量入力）、2個は1回限り（チェック）
   { name: "魔導石65個(アプリ内）", price: 7800, paid: 65, free: 0, color:'purple', unlimited:true },
   { name: "魔導石40個(アプリ内）", price: 4800, paid: 40, free: 0, color:'purple', unlimited:true },
@@ -180,14 +179,12 @@ function renderPacks() {
       let html = `<div class="pack-card ${pack.color}">`;
 
       if (color === 'purple' && pack.unlimited) {
-        // 紫の無制限は数量入力（UIの他要素は変えない）
         html += `
             <label>${pack.name}</label>
             <p>￥${pack.price} | 有償${pack.paid} 無償${pack.free} クーポン${pack.coupon||0}</p>
             <label>購入数: <input type="number" id="qty${i}" min="0" value="0"></label>
         `;
       } else {
-        // その他はチェックボックス（紫の unlimited:false もここ）
         html += `
             <input type="checkbox" id="pack${i}">
             <label for="pack${i}">${pack.name}</label>
@@ -204,7 +201,6 @@ function renderPacks() {
     catDiv.appendChild(content);
     container.appendChild(catDiv);
 
-    // 折りたたみ動作（▲/▼を正しく切り替え）
     header.addEventListener("click", () => {
       content.classList.toggle("hidden");
       const span = header.querySelector("span");
@@ -212,7 +208,6 @@ function renderPacks() {
     });
   });
 
-  // 描画後に相互排他イベントをセット（チェックボックスのみ対象）
   setupMutualExclusion();
 }
 
@@ -236,7 +231,6 @@ function setupMutualExclusion() {
 
     const appCheck = document.getElementById(`pack${appIndex}`);
     const storeCheck = document.getElementById(`pack${storeIndex}`);
-    // チェックボックスでない場合は対象外（紫の数量入力など）
     if (!appCheck || !storeCheck) return;
 
     const appCard = appCheck.closest(".pack-card");
@@ -294,8 +288,9 @@ function selectAll(){
     const checkbox=document.getElementById(`pack${i}`);
     if(checkbox && !checkbox.disabled) checkbox.checked=true;
     const qty = document.getElementById(`qty${i}`);
-    if(qty) qty.value = 1; // 紫の数量入力は1にする
+    if(qty) qty.value = 1;
   });
+  calcAndShow();
 }
 
 function calculate(){
@@ -307,7 +302,9 @@ function calcAndShow(){
   const ownPaid=parseInt(document.getElementById('ownPaid').value)||0;
   const ownFree=parseInt(document.getElementById('ownFree').value)||0;
   const ownCoupon=parseInt(document.getElementById('ownCoupon').value)||0;
-  totalPaid += ownPaid; totalFree += ownFree; totalCoupon += ownCoupon;
+  totalPaid += ownPaid;
+  totalFree += ownFree;
+  totalCoupon += ownCoupon;
 
   const includeCoupons = document.getElementById('includeCoupons').checked;
 
@@ -331,14 +328,20 @@ function calcAndShow(){
     }
   });
 
-  // 元の式を維持：有償50ごとに40、無償50ごとに10、クーポンはそのまま足す
-  const totalPower = Math.floor(totalPaid/50)*4 + Math.floor(totalFree/50)*1 + totalCoupon;
+  const paidGp = Math.floor(totalPaid / 5) * 4;
+  const freeGp = Math.floor(totalFree / 5) * 1;
+  const totalPower = paidGp + freeGp + totalCoupon;
+
+  const remainPaid = totalPaid % 5;
+  const remainFree = totalFree % 5;
 
   document.getElementById("result").innerHTML = `
     <p>合計金額: ￥${totalPrice.toLocaleString()}</p>
     <p>有償石: ${totalPaid}</p>
     <p>無償石: ${totalFree}</p>
     <p>クーポン: ${totalCoupon} ${includeCoupons ? '' : '(計算に含めない設定)'}</p>
+    <p>有償石GP: ${paidGp}</p>
+    <p>無償石GP: ${freeGp}</p>
     <p>残った有償石: ${remainPaid}</p>
     <p>残った無償石: ${remainFree}</p>
     <p><b>推定ガチャパワー: ${totalPower}</b></p>`;
@@ -348,11 +351,9 @@ function clearHistory(){
   history=[]; document.getElementById('history').innerHTML='';
 }
 
-// イベント：入力変化で自動再計算（UIは変えない）
 document.body.addEventListener("input", calcAndShow);
 document.getElementById("includeCoupons").addEventListener("change", calcAndShow);
 
-// 初期描画
 renderPacks();
 calcAndShow();
 </script>
